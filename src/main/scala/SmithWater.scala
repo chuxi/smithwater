@@ -1,3 +1,5 @@
+import scala.io.Source
+
 /**
  * Created by king on 15-5-20.
  */
@@ -8,7 +10,7 @@
 // Score Matrix = ??????
 
 
-class SmithWater(val s1: String, val s2: String, val score: Array[Array[Int]] = Array.ofDim(26, 15), val o: Int = 0, val e: Int = -1) {
+class SmithWater(val s1: String, val s2: String, val score: Array[Array[Int]] = Array.ofDim(26, 26), val o: Int = 0, val e: Int = -1) {
 
   // the size is added by 1 for -
   val m = s1.length + 1
@@ -19,15 +21,12 @@ class SmithWater(val s1: String, val s2: String, val score: Array[Array[Int]] = 
   var k = 0
 
   // define the match and mismatch
+  // TODO: gap calculation affine
   def ismatch(a: Char, b: Char) = {
-    val gap = -1
-    if (a == b) {
-      k = 0
-      (2, gap)
-    } else {
-      k = k + 1
-      (-1, gap)
-    }
+    val gap = -2
+    val s = score(a.toInt - 65)(b.toInt - 65)
+    if (a == b) k=0 else k = k+1
+    (s, gap)
   }
 
 
@@ -45,11 +44,10 @@ class SmithWater(val s1: String, val s2: String, val score: Array[Array[Int]] = 
 //    val F = Array.ofDim[Int](m, n)
 
 
+    // need to get the route of calculation?
     for (i <- 1 until m) {
       for (j <- 1 until n) {
-
         // score and gap are two factors determine the currency of sw
-        //
         val (s, gap) = ismatch(s1.charAt(i - 1), s2.charAt(j - 1))
         H(i)(j) = Array(0, H(i-1)(j) + gap, H(i)(j-1) + gap, H(i-1)(j-1) + s).max
         if (H(i)(j) > maxScore)
@@ -62,7 +60,7 @@ class SmithWater(val s1: String, val s2: String, val score: Array[Array[Int]] = 
 
   def printMatrix(): Unit = {
     H.foreach( row => {
-      row.foreach(c => print(c + " "))
+      row.foreach(c => print(c + "\t"))
       println()
     })
   }
@@ -75,12 +73,19 @@ class SmithWater(val s1: String, val s2: String, val score: Array[Array[Int]] = 
 object SmithWater {
 
   def main(args: Array[String]) {
-    val sw = new SmithWater("AGCACACA", "ACACACTA")
+    // import the blosum file
+    val blosum = Source.fromFile("blosum").getLines().map(row => {
+      row.split("\t").map(_.toInt)
+    }).toArray
+
+//    blosum.foreach(row => {
+//      row.foreach(c => print(c + " "))
+//      println()
+//    })
+
+    val sw = new SmithWater("AGCACACA", "ACACACTA", blosum)
     println(sw.computeMatrix())
     sw.printMatrix()
-
-
-
   }
 
 }
