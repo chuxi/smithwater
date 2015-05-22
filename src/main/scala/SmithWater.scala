@@ -87,15 +87,23 @@ class SmithWater(val s1: String, val s2: String, val score: Array[Array[Int]] = 
 object SmithWater {
 
   def main(args: Array[String]) {
+    if (args.length < 3) {
+      println("<Usage: blosumfile, queryseqfile, dbseqsfile, [numPartitions = 8], [TopTakenNum = 10]>")
+      System.exit(1)
+    }
+    val Array(blosumfile, queryseqfile, dbseqsfile) = args.take(3)
+    val numP = if (args.length > 3) args(3).toInt else 8
+    val numT = if (args.length > 4) args(4).toInt else 10
+
     // import the blosum file
-    val blosum = Source.fromFile("blosum").getLines().map(row => {
+    val blosum = Source.fromFile(blosumfile).getLines().map(row => {
       row.split("\t").map(_.toInt)
     }).toArray
 
 //    assume query sequences have been splitted as lines in queryseq file.
-    val queryseq = Source.fromFile("queryseq").getLines().toArray
+    val queryseq = Source.fromFile(queryseqfile).getLines().toArray
 
-    val dbseqs = Source.fromFile("dbseqs").getLines().map(row => {
+    val dbseqs = Source.fromFile(dbseqsfile).getLines().map(row => {
       val tmp = row.split(",")
       (tmp(0), tmp(1))
     }).toArray
@@ -106,7 +114,7 @@ object SmithWater {
 //    println(sw.computeMatrix())
 //    sw.printMatrix()
 
-    val conf = new SparkConf().setAppName("Smith Waterman").setMaster("local[*]")
+    val conf = new SparkConf().setAppName("Smith Waterman")
 
     val sc = new SparkContext(conf)
 //    here we only have one query sequence against many database sequences,
@@ -114,9 +122,9 @@ object SmithWater {
 //    we could broadcast the database sequences
     val bcblosum = sc.broadcast(blosum)
 
-    val protein = sc.parallelize(dbseqs)
+    val protein = sc.parallelize(dbseqs, numP)
 
-    val rs = protein.map(m => (m._1, new SmithWater(m._2, queryseq(0), bcblosum.value).computeMatrix())).sortBy(-_._2).take(10)
+    val rs = protein.map(m => (m._1, new SmithWater(m._2, queryseq(0), bcblosum.value).computeMatrix())).sortBy(-_._2).take(numT)
 
     rs.foreach(println)
 
