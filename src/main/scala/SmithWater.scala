@@ -1,3 +1,5 @@
+import org.apache.spark.{SparkContext, SparkConf}
+
 import scala.io.Source
 
 /**
@@ -15,7 +17,7 @@ import scala.io.Source
 
 // s1 = db sequence
 // s2 = query sequence
-class SmithWater(val s1: String, val s2: String, val score: Array[Array[Int]] = Array.ofDim(26, 26), val o: Int = 0, val e: Int = -1) {
+class SmithWater(val s1: String, val s2: String, val score: Array[Array[Int]] = Array.ofDim(26, 26), val o: Int = 0, val e: Int = -1) extends Serializable{
 
   // the size is added by 1 for -
   val m = s1.length + 1
@@ -104,6 +106,21 @@ object SmithWater {
 //    println(sw.computeMatrix())
 //    sw.printMatrix()
 
+    val conf = new SparkConf().setAppName("Smith Waterman").setMaster("local[*]")
+
+    val sc = new SparkContext(conf)
+//    here we only have one query sequence against many database sequences,
+//    once to some other situation, Number of query sequences > database sequences,
+//    we could broadcast the database sequences
+    val bcblosum = sc.broadcast(blosum)
+
+    val protein = sc.parallelize(dbseqs)
+
+    val rs = protein.map(m => (m._1, new SmithWater(m._2, queryseq(0), bcblosum.value).computeMatrix())).sortBy(-_._2).take(10)
+
+    rs.foreach(println)
+
+    sc.stop()
   }
 
 }
