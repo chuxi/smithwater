@@ -2,7 +2,7 @@
 
 # This program is used for spark-submiting
 
-
+# if you are a ZJUer, = =... you know what following info means, do not use it please
 username='hadoop'
 password='hadoop'
 hostname='10.214.208.11'
