@@ -7,7 +7,7 @@ import scala.io.Source
 // http://en.wikipedia.org/wiki/Smith%E2%80%93Waterman_algorithm
 // smith waterman algorithm
 // apply affine gap method (http://en.wikipedia.org/wiki/Gap_penalty) A+(B⋅L). gap = o + e * (k - 1)
-// Score Matrix = ??????
+// Score Matrix = ?????? score matrix
 
 
 class SmithWater(val s1: String, val s2: String, val score: Array[Array[Int]] = Array.ofDim(26, 26), val o: Int = 0, val e: Int = -1) {
@@ -23,8 +23,11 @@ class SmithWater(val s1: String, val s2: String, val score: Array[Array[Int]] = 
   // define the match and mismatch
   // TODO: gap calculation affine
   def ismatch(a: Char, b: Char) = {
-    val gap = -2
-    val s = score(a.toInt - 65)(b.toInt - 65)
+    val gap = -1
+//    score is calculated based on the balsum table, for protein
+//    val s = score(a.toInt - 65)(b.toInt - 65)
+//    or based on 2 | -1 for nucleotide?? normal mode
+    val s = if (a==b) 2 else -1
     if (a == b) k=0 else k = k+1
     (s, gap)
   }
@@ -38,9 +41,9 @@ class SmithWater(val s1: String, val s2: String, val score: Array[Array[Int]] = 
 //    for simplicity, we treat the MAX(k>=1) { H(i-k, j) + gap } = H(i-1)(j) + gap,
 //    MAX(l>=1) { H(i, j-l) + gap } = H(i)(j-1) + gap
 
-//     MAX(k>=1) { H(i-k, j) + gap } deletion
+//    MAX(k>=1) { H(i-k, j) + gap } deletion
 //    val E = Array.ofDim[Int](m, n)
-//     MAX(l>=1) { H(i, j-l) + gap } insertion
+//    MAX(l>=1) { H(i, j-l) + gap } insertion
 //    val F = Array.ofDim[Int](m, n)
 
 
